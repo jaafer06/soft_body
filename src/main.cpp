@@ -6,12 +6,13 @@
 #include "utils/utils.h"
 #include "utils/mesh.h"
 #include "utils/vertexArray.h"
+#include "camera.h"
 
 template<typename T, unsigned int N>
 using Attribute = utils::Attribute<T,N>;
 
 int main(void) {
-    constexpr unsigned int width = 640;
+    constexpr unsigned int width = 900;
     constexpr unsigned int height = 480;
 
     GLFWwindow* window;
@@ -46,7 +47,6 @@ int main(void) {
     GLuint programID = utils::linkShaders(fragmentShader, vertexShader);
     glUseProgram(programID);
 
-
     utils::Mesh mesh;
     mesh.loadObj("../meshes/bunny.obj");
     mesh.normalize();
@@ -54,11 +54,11 @@ int main(void) {
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.getTriangles().size() * 3 * sizeof(unsigned int), mesh.getTriangles().data(), GL_STATIC_DRAW);
-
+    
     utils::VertexArray<Attribute<float,4>,Attribute<float,4>,Attribute<float, 4>>
         vertexArray(mesh.getVertices().data(), mesh.getVertices().size());
-
-    while (!glfwWindowShouldClose(window))
+    Camera camera(width, height, glGetUniformLocation(programID, "MVP"));
+     while (!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
