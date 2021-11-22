@@ -6,46 +6,55 @@
 #include "utils/utils.h"
 #include "utils/mesh.h"
 #include "utils/vertexArray.h"
+#include "utils/imgui.h"
 #include "camera.h"
+#include <functional>
+#include <type_traits>
+#include "callbacks.h"
 
-template<typename T, unsigned int N>
-using Attribute = utils::Attribute<T,N>;
+template<typename Type, unsigned int n>
+using Attribute = utils::Attribute<Type, n>;
 
 int main(void) {
-    constexpr unsigned int width = 900;
-    constexpr unsigned int height = 480;
 
+    constexpr unsigned int width = 1080;
+    constexpr unsigned int height = 720;
     GLFWwindow* window;
 
-    if (!glfwInit())
+    if (!glfwInit()) {
         return -1;
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window)
-    {
+    }
+    window = glfwCreateWindow(width, height, "Hello World", NULL, NULL);
+    if (!window) {
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
-
+    utils::ImGuiWrapper::setup(window, "#version 130");
     glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwSwapInterval(1);
+
+    Camera camera(width, height, 1);
+    CallBacks callBacks(window, camera);
 
     gladLoadGL();
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
 
     GLuint fragmentShader = utils::loadShader("../src/shaders/fragment_shader.glsl", GL_FRAGMENT_SHADER);
     GLuint vertexShader = utils::loadShader("../src/shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
     GLuint programID = utils::linkShaders(fragmentShader, vertexShader);
     glUseProgram(programID);
+    camera.set_MVP_uniform_location(glGetUniformLocation(programID, "MVP"));
 
     utils::Mesh mesh;
     mesh.loadObj("../meshes/bunny.obj");
@@ -54,18 +63,34 @@ int main(void) {
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.getTriangles().size() * 3 * sizeof(unsigned int), mesh.getTriangles().data(), GL_STATIC_DRAW);
-    
+
     utils::VertexArray<Attribute<float,4>,Attribute<float,4>,Attribute<float, 4>>
         vertexArray(mesh.getVertices().data(), mesh.getVertices().size());
-    Camera camera(width, height, glGetUniformLocation(programID, "MVP"));
-     while (!glfwWindowShouldClose(window))
-    {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Eigen::Vector4f a = mesh.getVertices()[0].position;
+    Eigen::Vector4f b = camera.getMVP() * a;
+    utils::ImGuiWrapper::display(b);
+    
+    while (!glfwWindowShouldClose(window)) {
+        b = camera.getMVP() * a;
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("check da stats man!");                          // Create a window called "Hello, world!" and append into it.
+
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glDrawElements(GL_TRIANGLES, mesh.getTriangles().size() * 3, GL_UNSIGNED_INT, nullptr);
+        utils::ImGuiWrapper::render();
 
+        camera.update_MVP();
+        ImGui::End();
+        ImGui::Render();
+
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
         glfwPollEvents();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     }
 
     glfwTerminate();

@@ -125,7 +125,7 @@ namespace utils {
 
         static constexpr unsigned int vertexSize = Size<Attribute<T, N>, Args...>::size;
 
-    private:
+    public:
         unsigned int vertexArrayId;
         unsigned int bufferId;
     };

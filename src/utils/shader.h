@@ -15,8 +15,7 @@ namespace utils {
 			sstr << fileStream.rdbuf();
 			shaderCode = sstr.str();
 			fileStream.close();
-		}
-		else {
+		} else {
 			throw ("could not open file " + filePath);
 		}
 
