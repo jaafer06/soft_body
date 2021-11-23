@@ -8,9 +8,9 @@
 #include <iostream>
 #include <functional>
 namespace utils {
-	namespace ImGuiWrapper {
-		static std::vector<std::function<void()>> callbacks;
-		void setup(GLFWwindow* window, std::string&& glsl_version) {
+	class ImGuiWrapper {
+	public:
+		ImGuiWrapper(GLFWwindow* window, std::string&& glsl_version) {
 			// Setup Dear ImGui context
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
@@ -24,9 +24,9 @@ namespace utils {
 
 		template<typename T>
 		void display(T&) {}
-		
+
 		template<typename Type, int n, int m>
-		void display(Eigen::Matrix<Type,n,m>& matrix) {
+		void display(Eigen::Matrix<Type, n, m>& matrix) {
 			for (unsigned int i = 0; i < n; ++i) {
 				for (unsigned int j = 0; j < m; ++j) {
 					std::cout << matrix(i, j) << " ";
@@ -49,10 +49,24 @@ namespace utils {
 		}
 
 		void render() {
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			ImGui::Begin("check da stats man!");                          // Create a window called "Hello, world!" and append into it.
+
 			for (auto& callback : callbacks) {
 				callback();
 			}
+
+			ImGui::End();
+			ImGui::Render();
+
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
-	}
+
+	private:
+		std::vector<std::function<void()>> callbacks;
+
+	};
 
 }

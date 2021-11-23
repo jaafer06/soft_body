@@ -30,7 +30,7 @@ int main(void) {
         return -1;
     }
     glfwMakeContextCurrent(window);
-    utils::ImGuiWrapper::setup(window, "#version 130");
+    utils::ImGuiWrapper imguiWrapper(window, "#version 130");
     glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -69,24 +69,16 @@ int main(void) {
 
     Eigen::Vector4f a = mesh.getVertices()[0].position;
     Eigen::Vector4f b = camera.getMVP() * a;
-    utils::ImGuiWrapper::display(b);
+    imguiWrapper.display(b);
     
     while (!glfwWindowShouldClose(window)) {
         b = camera.getMVP() * a;
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::Begin("check da stats man!");                          // Create a window called "Hello, world!" and append into it.
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glDrawElements(GL_TRIANGLES, mesh.getTriangles().size() * 3, GL_UNSIGNED_INT, nullptr);
-        utils::ImGuiWrapper::render();
+        imguiWrapper.render();
 
         camera.update_MVP();
-        ImGui::End();
-        ImGui::Render();
-
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
