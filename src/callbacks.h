@@ -14,14 +14,23 @@ public:
 		
 		glfwGetWindowSize(window, &width, &height);
 		glfwSetWindowUserPointer(window, this);
+		previousKeyCallBack = glfwSetKeyCallback(window, NULL);
+		previousCursorPosCallBack = glfwSetCursorPosCallback(window, NULL);
+
 		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y) {
 			auto& self = *static_cast<CallBacks*>(glfwGetWindowUserPointer(window));
 			self.mouseCallback(window, x, y);
+			if (self.previousCursorPosCallBack) {
+				self.previousCursorPosCallBack(window, x, y);
+			}
 		});
 
 		glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
 			auto& self = *static_cast<CallBacks*>(glfwGetWindowUserPointer(window));
 			self.keyCallback(window, key, scancode, action, mods);
+			if (self.previousKeyCallBack) {
+				self.previousKeyCallBack(window, key, scancode, action, mods);
+			}
 		});
 
 		std::thread eventThread([&]() { this->handleEvents(); });
@@ -79,6 +88,8 @@ public:
 private:
 	Camera& camera;
 	GLFWwindow* window;
+	GLFWkeyfun previousKeyCallBack;
+	GLFWcursorposfun previousCursorPosCallBack;
 	bool isKeyPressed[GLFW_KEY_MENU + 1];
 	bool movementMode;
 	int width, height;

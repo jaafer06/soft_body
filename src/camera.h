@@ -30,7 +30,7 @@ public:
 		}
 	}
 
-	const Eigen::Matrix<float, 4, 4>& getMVP() {
+	Eigen::Matrix<float, 4, 4>& getMVP() {
 		return MVP;
 	}
 

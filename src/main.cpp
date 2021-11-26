@@ -71,8 +71,8 @@ int main(void) {
 
     Eigen::Vector4f a = mesh.getVertices()[0].position;
     Eigen::Vector4f b = camera.getMVP() * a;
-    imguiWrapper.display(b);
-    
+    imguiWrapper.display(b, "bb");
+    imguiWrapper.display(camera.getMVP(), "MVP");
     while (!glfwWindowShouldClose(window)) {
         b = camera.getMVP() * a;
 

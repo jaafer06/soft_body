@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui.h>
+#include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "GLFW/glfw3.h"
@@ -7,6 +7,8 @@
 #include <string>
 #include <iostream>
 #include <functional>
+#include <string>
+
 namespace utils {
 	class ImGuiWrapper {
 	public:
@@ -22,30 +24,37 @@ namespace utils {
 			ImGui::StyleColorsDark();
 		}
 
-		template<typename T>
-		void display(T&) {}
-
 		template<typename Type, int n, int m>
-		void display(Eigen::Matrix<Type, n, m>& matrix) {
-			for (unsigned int i = 0; i < n; ++i) {
-				for (unsigned int j = 0; j < m; ++j) {
-					std::cout << matrix(i, j) << " ";
-				};
-				std::cout << std::endl;
-			}
-		}
+		void display(Eigen::Matrix<Type, n, m>& matrix, const std::string displayName) {
+			const auto callback = [&](std::string& displayName) {
+				if (!ImGui::TreeNode(displayName.c_str()) || !ImGui::BeginTable("", m))
+					return;
+				for (unsigned int i = 0; i < m; ++i) {
+					ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+				}
 
-		template<typename Type, int n>
-		void display(Eigen::Matrix<Type, n, 1>& matrix) {
-			for (unsigned int i = 0; i < n; ++i) {
-				std::cout << matrix(i) << " ";
-			}
+				for (int row = 0; row < n; row++) {
+					ImGui::TableNextRow();
+					for (int column = 0; column < m; column++) {
+						ImGui::TableSetColumnIndex(column);
+						const std::string label = std::to_string(row) + "-" + std::to_string(column);
+						ImGui::PushID(row + column * n);
+						ImGui::InputFloat("", &matrix(row, column));
+						ImGui::PopID();
+					}
+				}
+				ImGui::EndTable();
+				ImGui::TreePop();
+			};
+			named_callbacks.push_back({ callback, displayName });
 		}
 
 		template<typename Type>
-		void display(Eigen::Matrix<Type, 4, 1>& vector) {
-			auto callback = [&]() { ImGui::InputFloat4("Rect", vector.data()); };
-			callbacks.push_back(callback);
+		void display(Eigen::Matrix<Type, 4, 1>& vector, const std::string displayName) {
+			const auto callback = [&](std::string& displayName) { 
+				ImGui::InputFloat4(displayName.c_str(), vector.data());
+			};
+			named_callbacks.push_back({ callback,  displayName });
 		}
 
 		void render() {
@@ -53,19 +62,17 @@ namespace utils {
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 			ImGui::Begin("check da stats man!");
-
-			for (auto& callback : callbacks) {
-				callback();
+			for (auto& named_callback : named_callbacks) {
+				auto& [callback, displayName] = named_callback;
+				callback(displayName);
 			}
-
 			ImGui::End();
 			ImGui::Render();
-
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
 
 	private:
-		std::vector<std::function<void()>> callbacks;
+		std::vector<std::tuple<std::function<void(std::string&)>, std::string>> named_callbacks;
 
 	};
 
