@@ -57,6 +57,12 @@ namespace utils {
 			return center / getVertices().size();
 		}
 
+		void translate(Eigen::Vector3f t) {
+			for (Vertex& point : getVertices()) {
+				point.position.head(3) += t;
+			}
+		}
+
 		std::pair<Eigen::Vector3f, float> getMeshCenterAndRadius() {
 			Eigen::Vector3f mesh_center = getMeshCenter();
 			float mesh_radius = 0;

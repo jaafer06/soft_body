@@ -52,7 +52,7 @@ namespace utils {
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
-			ImGui::Begin("check da stats man!");                          // Create a window called "Hello, world!" and append into it.
+			ImGui::Begin("check da stats man!");
 
 			for (auto& callback : callbacks) {
 				callback();

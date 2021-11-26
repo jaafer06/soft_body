@@ -36,7 +36,6 @@ int main(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwSwapInterval(1);
 
     Camera camera(width, height, 1);
@@ -59,6 +58,7 @@ int main(void) {
     utils::Mesh mesh;
     mesh.loadObj("../meshes/bunny.obj");
     mesh.normalize();
+    mesh.translate({0, 0, -4});
     unsigned int ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
