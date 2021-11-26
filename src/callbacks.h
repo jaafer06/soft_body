@@ -4,11 +4,13 @@
 #include <GLFW/glfw3.h>
 #include <chrono> 
 #include <thread> 
+#include <atomic>
 
 class CallBacks {
 public:
 
-	CallBacks(GLFWwindow* window, Camera& camera) :	camera(camera), isKeyPressed{ false }, movementMode(false) {
+	CallBacks(GLFWwindow* window, Camera& camera)
+		: window(window), camera(camera), isKeyPressed{ false }, movementMode(false) {
 		
 		glfwGetWindowSize(window, &width, &height);
 		glfwSetWindowUserPointer(window, this);
@@ -22,16 +24,18 @@ public:
 			self.keyCallback(window, key, scancode, action, mods);
 		});
 
-		std::thread keyThread([&]() { this->handleKeyEvents(); });
-		keyThread.detach();
+		std::thread eventThread([&]() { this->handleEvents(); });
+		eventThread.detach();
 	}
+
 	static void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 		auto& self = *static_cast<CallBacks*>(glfwGetWindowUserPointer(window));
 		if (self.movementMode) {
-			float dx = xpos - (self.width / 2.);
-			float dy = ypos - (self.height / 2.);
+			float _dx = xpos - (self.width / 2.);
+			float _dy = ypos - (self.height / 2.);
 			glfwSetCursorPos(window, self.width / 2., self.height / 2.);
-			self.camera.rotate(dx, dy);
+			self.dx += _dx;
+			self.dy += _dy;
 		}
 	}
 
@@ -56,32 +60,45 @@ public:
 		}
 	}
 
-	void handleKeyEvents() {
+	void handleEvents() {
 		while (true) {
 			const int deltaTimeMs = 50;
 			std::this_thread::sleep_for(std::chrono::milliseconds(deltaTimeMs));
 			if (!movementMode) {
 				continue;
 			}
-			if (isKeyPressed[GLFW_KEY_W]) {
-				camera.move(Camera::DIRECTION::FORWARD, deltaTimeMs);
-			}
-			if (isKeyPressed[GLFW_KEY_S]) {
-				camera.move(Camera::DIRECTION::BACKWARD, deltaTimeMs);
-			}
-
-			if (isKeyPressed[GLFW_KEY_D]) {
-				camera.move(Camera::DIRECTION::LEFT, deltaTimeMs);
-			}
-			if (isKeyPressed[GLFW_KEY_A]) {
-				camera.move(Camera::DIRECTION::RIGHT, deltaTimeMs);
-			}
+			auto const movementDirection = getMovementDirection(deltaTimeMs);
+			float _dx = dx.load();
+			float _dy = dy.load();
+			camera.move(movementDirection, dx, dy);
+			dx -= _dx;
+			dy -= _dy;
 		}
 	}
 
 private:
 	Camera& camera;
+	GLFWwindow* window;
 	bool isKeyPressed[GLFW_KEY_MENU + 1];
 	bool movementMode;
 	int width, height;
+	std::atomic<float> dx;
+	std::atomic<float> dy;
+
+	Eigen::Vector4f getMovementDirection(float deltaTimeMs) {
+		Eigen::Vector4f direction{ 0, 0, 0, 0 };
+		if (isKeyPressed[GLFW_KEY_W]) {
+			direction += camera.getForwardDirection() * (deltaTimeMs/500);
+		}
+		if (isKeyPressed[GLFW_KEY_S]) {
+			direction -= camera.getForwardDirection() * (deltaTimeMs / 500);
+		}
+		if (isKeyPressed[GLFW_KEY_D]) {
+			direction += camera.getRightDirection() * (deltaTimeMs / 500);
+		}
+		if (isKeyPressed[GLFW_KEY_A]) {
+			direction -= camera.getRightDirection() * (deltaTimeMs / 500);
+		}
+		return direction;
+	}
 };

@@ -11,6 +11,8 @@
 #include <functional>
 #include <type_traits>
 #include "callbacks.h"
+#include "scene.h"
+
 
 template<typename Type, unsigned int n>
 using Attribute = utils::Attribute<Type, n>;
@@ -82,7 +84,6 @@ int main(void) {
         glfwSwapBuffers(window);
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     }
 
     glfwTerminate();
