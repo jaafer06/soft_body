@@ -24,35 +24,50 @@ namespace utils {
 			ImGui::StyleColorsDark();
 		}
 
+
 		template<typename Type, int n, int m>
 		void display(Eigen::Matrix<Type, n, m>& matrix, const std::string displayName) {
 			const auto callback = [&](std::string& displayName) {
-				if (!ImGui::TreeNode(displayName.c_str()) || !ImGui::BeginTable("", m))
-					return;
-				for (unsigned int i = 0; i < m; ++i) {
-					ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-				}
-
-				for (int row = 0; row < n; row++) {
-					ImGui::TableNextRow();
-					for (int column = 0; column < m; column++) {
-						ImGui::TableSetColumnIndex(column);
-						const std::string label = std::to_string(row) + "-" + std::to_string(column);
-						ImGui::PushID(row + column * n);
-						ImGui::InputFloat("", &matrix(row, column));
+				if (ImGui::TreeNode(displayName.c_str())) {
+					for (int row = 0; row < n; row++) {
+						ImGui::PushID(row);
+						ImGui::InputScalarN("", ImGuiDataType_Float, matrix.data() + row*m, m);
 						ImGui::PopID();
 					}
+					ImGui::TreePop();
 				}
-				ImGui::EndTable();
-				ImGui::TreePop();
 			};
 			named_callbacks.push_back({ callback, displayName });
 		}
 
-		template<typename Type>
-		void display(Eigen::Matrix<Type, 4, 1>& vector, const std::string displayName) {
+		template<typename Type, int n, int m>
+		void display(const Eigen::Matrix<Type, n, m>& matrix, const std::string displayName) {
+			const auto callback = [&](std::string& displayName) {
+				if (ImGui::TreeNode(displayName.c_str())) {
+					for (int row = 0; row < n; row++) {
+						ImGui::PushID(row);
+						ImGui::InputScalarN("", ImGuiDataType_Float, (float*)matrix.data() + row * m, m, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);
+						ImGui::PopID();
+					}
+					ImGui::TreePop();
+				}
+			};
+			named_callbacks.push_back({ callback, displayName });
+		}
+
+
+		template<typename Type, int n>
+		void display(Eigen::Matrix<Type, n, 1>& vector, const std::string displayName) {
 			const auto callback = [&](std::string& displayName) { 
-				ImGui::InputFloat4(displayName.c_str(), vector.data());
+				ImGui::InputScalarN(displayName.c_str(), ImGuiDataType_Float, vector.data(), n);
+			};
+			named_callbacks.push_back({ callback,  displayName });
+		}
+
+		template<typename Type, int n>
+		void display(const Eigen::Matrix<Type, n, 1>& vector, const std::string displayName) {
+			const auto callback = [&](std::string& displayName) {
+				ImGui::InputScalarN(displayName.c_str(), ImGuiDataType_Float, (float*)vector.data(), n, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);
 			};
 			named_callbacks.push_back({ callback,  displayName });
 		}
