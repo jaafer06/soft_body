@@ -22,6 +22,10 @@ namespace utils {
 
 	class Mesh {
 	public:
+		Mesh() {
+			transform = Eigen::Matrix4f::Identity();
+		}
+
 		bool loadObj(std::string&& file_name) {
 			std::vector<float> result;
 			objl::Loader loader;
@@ -42,7 +46,19 @@ namespace utils {
 			return true;
 		}
 
-		void normalize() {
+		void translate(const Eigen::Vector3f& t) {
+			transform.block<3, 1>(0, 3) += transform.block<3, 3>(0, 0) * t;
+		}
+
+		void rotate(float xAxis, float yAxis, float zAxis) {
+			const auto r = Eigen::AngleAxisf(xAxis, Eigen::Vector3f{ 1, 0, 0 }) 
+							* Eigen::AngleAxisf(yAxis, Eigen::Vector3f{ 0, 1, 0 })
+							* Eigen::AngleAxisf(zAxis, Eigen::Vector3f{ 0, 0, 1 });
+			transform.block<3, 1>(0, 3) = r * transform.block<3, 1>(0, 3);
+			transform.block<3, 3>(0, 0) = r * transform.block<3, 3>(0, 0);
+		}
+
+		void preprocessNormalize() {
 			auto [center, radius] = getMeshCenterAndRadius();
 			for (auto& vertex : getVertices()) {
 				vertex.position.head(3) = (vertex.position.head(3) - center) / radius;
@@ -57,7 +73,7 @@ namespace utils {
 			return center / getVertices().size();
 		}
 
-		void translate(Eigen::Vector3f t) {
+		void preprocessTranslate(Eigen::Vector3f t) {
 			for (Vertex& point : getVertices()) {
 				point.position.head(3) += t;
 			}
@@ -80,7 +96,12 @@ namespace utils {
 			return vertices;
 		}
 
+		Eigen::Matrix4f& getTransform() {
+			return transform;
+		}
+
 	private:
+		Eigen::Matrix4f transform;
 		std::vector<Vertex> vertices;
 		std::vector<Triangle> triangles;
 	};

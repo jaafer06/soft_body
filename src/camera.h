@@ -16,9 +16,9 @@ public:
 		position = { 0, 0, 0, 1 };
 		orientation = { 0, 0, -1, 0 };
 
-		projection = Eigen::Matrix<float,4,4>::Identity();
-		view = Eigen::Matrix<float,4,4>::Identity();
-		model = Eigen::Matrix<float,4,4>::Identity();
+		projection = Eigen::Matrix4f::Identity();
+		view = Eigen::Matrix4f::Identity();
+		model = Eigen::Matrix4f::Identity();
 
 		projection(0, 0) = (1 / ratio) * focalLength;
 		projection(1, 1) = focalLength;
@@ -40,6 +40,7 @@ public:
 	}
 	
 	void update_MVP() {
+		update();
 		glUniformMatrix4fv(MVP_UNIFORM_LOCATION, 1, GL_FALSE, MVP.data());
 	}
 
@@ -52,8 +53,8 @@ public:
 		const auto R = r2 * r1;
 		orientation.head(3) = R * orientation.head(3);
 		right.head(3) = r2 * right.head(3);
-		model.block<3, 3>(0, 0) = model.block<3, 3>(0, 0) * R.inverse();
-		model.block<3, 1>(0, 3) = model.block<3, 3>(0, 0) * -position.head(3);
+		view.block<3, 3>(0, 0) = view.block<3, 3>(0, 0) * R.inverse();
+		view.block<3, 1>(0, 3) = view.block<3, 3>(0, 0) * -position.head(3);
 		update();
 	}
 
@@ -65,16 +66,20 @@ public:
 		return right;
 	}
 
+	void setModelMatrix(Eigen::Matrix4f& model) {
+		this->model = model;
+	}
+
 private:
 	void update() {
-		MVP = projection * model;
+		MVP = projection * view * model;
 	}
 
 	float width, height;
-	Eigen::Matrix<float,4,4> MVP;
-	Eigen::Matrix<float,4,4> projection;
-	Eigen::Matrix<float,4,4> view;
-	Eigen::Matrix<float,4,4> model;
+	Eigen::Matrix4f MVP;
+	Eigen::Matrix4f projection;
+	Eigen::Matrix4f view;
+	Eigen::Matrix4f model;
 
 	Eigen::Vector4f position;
 	Eigen::Vector4f orientation;

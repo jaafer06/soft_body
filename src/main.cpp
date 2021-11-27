@@ -59,8 +59,8 @@ int main(void) {
 
     utils::Mesh mesh;
     mesh.loadObj("../meshes/bunny.obj");
-    mesh.normalize();
-    mesh.translate({0, 0, -4});
+    mesh.preprocessNormalize();
+    mesh.preprocessTranslate({0, 0, -4});
     unsigned int ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -68,13 +68,15 @@ int main(void) {
 
     utils::VertexArray<Attribute<float,4>,Attribute<float,4>,Attribute<float, 4>>
         vertexArray(mesh.getVertices().data(), mesh.getVertices().size());
-
-    Eigen::Vector4f a = mesh.getVertices()[0].position;
-    Eigen::Vector4f b = camera.getMVP() * a;
-    imguiWrapper.display(b, "bb");
+    
+    imguiWrapper.display(mesh.getTransform(), "model transform");
     imguiWrapper.display(camera.getMVP(), "MVP");
+   
+
     while (!glfwWindowShouldClose(window)) {
-        b = camera.getMVP() * a;
+        mesh.translate({ 0, 0, -0.01 });
+        mesh.rotate(0, 0, 0.01);
+        camera.setModelMatrix(mesh.getTransform());
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glDrawElements(GL_TRIANGLES, mesh.getTriangles().size() * 3, GL_UNSIGNED_INT, nullptr);
