@@ -82,6 +82,19 @@ namespace utils {
 		}
 
 		template<typename Type, int n>
+		void displaySlider(Eigen::Matrix<Type, n, 1>& vector, const std::string&& displayName) {
+			const auto callback = [&](std::string& displayName) {
+				ImGui::PushID("slider");
+				constexpr float mins[n] = { -10 };
+				constexpr float maxs[n] = { 10 };
+				ImGui::SliderScalarN(displayName.c_str(), ImGuiDataType_Float, vector.data(), n, mins, maxs);
+				ImGui::PopID();
+
+			};
+			named_callbacks.push_back({ callback,  displayName });
+		}
+
+		template<typename Type, int n>
 		void display(const Eigen::Matrix<Type, n, 1>& vector, const std::string&& displayName) {
 			const auto callback = [&](std::string& displayName) {
 				ImGui::InputScalarN(displayName.c_str(), ImGuiDataType_Float, (float*)vector.data(), n, NULL, NULL, NULL, ImGuiInputTextFlags_ReadOnly);

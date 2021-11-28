@@ -6,11 +6,11 @@ layout(location = 2) in vec4 color;
 uniform mat4 ViewProjection;
 uniform mat4 Model;
 
-out vec4 world_position;
-out vec4 normal;
+out vec3 vertexPosition;
+out vec3 normal;
 
-void main(){
-	world_position = Model * position;
-	gl_Position = ViewProjection * world_position;
-	normal = _normal;
+void main() {
+	gl_Position = ViewProjection * Model * position;
+	vertexPosition = (Model * position).xyz;
+	normal = mat3(Model) * _normal.xyz;
 }

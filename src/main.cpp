@@ -42,13 +42,13 @@ int main(void) {
 
     Camera camera(width, height, 1);
     CallBacks callBacks(window, camera);
-    Light light({ 2, 2, -1, 1 });
+    Light light({ 0, 5, 10, 1 }, {1, 1, 1, 1});
 
     gladLoadGL();
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
 
@@ -69,20 +69,20 @@ int main(void) {
     utils::VertexArray<Attribute<float,4>,Attribute<float,4>,Attribute<float, 4>>
         vertexArray(mesh.getVertices().data(), mesh.getVertices().size());
     
-    camera.set_MVP_uniform_location(glGetUniformLocation(programID, "ViewProjection"));
+    camera.setUniformLocation(glGetUniformLocation(programID, "ViewProjection"));
     light.setUniformLocation(glGetUniformLocation(programID, "light"));
 
     imguiWrapper.display(mesh.getTransform(), "model transform");
     imguiWrapper.display(camera.getViewProjectionMatrix(), "ViewProjection matrix");
-    imguiWrapper.display(light.getPosition(), "light position");
-    imguiWrapper.display(light.getColor(), "light color");
+    imguiWrapper.displaySlider(light.getPosition(), "light position");
 
     while (!glfwWindowShouldClose(window)) {
-        mesh.translate({ 0, 0, -0.01 });
+        //mesh.translate({ 0, 0, -0.01 });
         mesh.rotate(0, 0, 0.01);
 
         glUniformMatrix4fv(glGetUniformLocation(programID, "Model"), 1, GL_FALSE, mesh.getTransform().data());
-        camera.update_MVP();
+        camera.updateUniform();
+        light.update();
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glDrawElements(GL_TRIANGLES, mesh.getTriangles().size() * 3, GL_UNSIGNED_INT, nullptr);

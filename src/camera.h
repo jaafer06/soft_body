@@ -9,8 +9,8 @@ class Camera {
 
 public:
 
-	Camera(unsigned int width, unsigned int height, float focalLength, int MVP_UNIFORM_LOCATION = -1) 
-			: ratio(width / (float)height), MVP_UNIFORM_LOCATION(MVP_UNIFORM_LOCATION),
+	Camera(unsigned int width, unsigned int height, float focalLength, int uniformLocation = -1)
+			: ratio(width / (float)height), uniformLocation(uniformLocation),
 				up{ 0, 1, 0, 0 }, right{ 1, 0, 0, 0 }, width(width), height(height) {
 
 		position = { 0, 0, 0, 1 };
@@ -23,9 +23,13 @@ public:
 		projection(1, 1) = focalLength;
 		projection(3, 2) = -1;
 		projection(3, 3) = 0;
+
+		projection(2, 2) = (5 + 0.1) / (0.1 - 5);
+		projection(2, 3) = (2 * 5 * 0.1) / (0.1 - 5);
+
 		ViewProjection = projection;
-		if (MVP_UNIFORM_LOCATION != -1) {
-			update_MVP();
+		if (uniformLocation != -1) {
+			updateUniform();
 		}
 	}
 
@@ -33,14 +37,13 @@ public:
 		return ViewProjection;
 	}
 
-	void set_MVP_uniform_location(int location) {
-		MVP_UNIFORM_LOCATION = location;
-		update_MVP();
+	void setUniformLocation(int location) {
+		uniformLocation = location;
 	}
 	
-	void update_MVP() {
+	void updateUniform() {
 		update();
-		glUniformMatrix4fv(MVP_UNIFORM_LOCATION, 1, GL_FALSE, ViewProjection.data());
+		glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, ViewProjection.data());
 	}
 
 	void move(const Eigen::Vector4f& translation, const float horizontal, const float vertical) {
@@ -81,5 +84,5 @@ private:
 	Eigen::Vector4f right;
 	float focalLength;
 	float ratio;
-	GLint MVP_UNIFORM_LOCATION;
+	GLint uniformLocation;
 };
