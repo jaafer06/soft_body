@@ -18,20 +18,19 @@ public:
 
 		projection = Eigen::Matrix4f::Identity();
 		view = Eigen::Matrix4f::Identity();
-		model = Eigen::Matrix4f::Identity();
 
 		projection(0, 0) = (1 / ratio) * focalLength;
 		projection(1, 1) = focalLength;
 		projection(3, 2) = -1;
 		projection(3, 3) = 0;
-		MVP = projection;
+		ViewProjection = projection;
 		if (MVP_UNIFORM_LOCATION != -1) {
 			update_MVP();
 		}
 	}
 
-	const Eigen::Matrix<float, 4, 4>& getMVP() {
-		return MVP;
+	const Eigen::Matrix<float, 4, 4>& getViewProjectionMatrix() {
+		return ViewProjection;
 	}
 
 	void set_MVP_uniform_location(int location) {
@@ -41,7 +40,7 @@ public:
 	
 	void update_MVP() {
 		update();
-		glUniformMatrix4fv(MVP_UNIFORM_LOCATION, 1, GL_FALSE, MVP.data());
+		glUniformMatrix4fv(MVP_UNIFORM_LOCATION, 1, GL_FALSE, ViewProjection.data());
 	}
 
 	void move(const Eigen::Vector4f& translation, const float horizontal, const float vertical) {
@@ -66,20 +65,15 @@ public:
 		return right;
 	}
 
-	void setModelMatrix(Eigen::Matrix4f& model) {
-		this->model = model;
-	}
-
 private:
 	void update() {
-		MVP = projection * view * model;
+		ViewProjection = projection * view;
 	}
 
 	float width, height;
-	Eigen::Matrix4f MVP;
+	Eigen::Matrix4f ViewProjection;
 	Eigen::Matrix4f projection;
 	Eigen::Matrix4f view;
-	Eigen::Matrix4f model;
 
 	Eigen::Vector4f position;
 	Eigen::Vector4f orientation;

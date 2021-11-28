@@ -71,7 +71,7 @@ public:
 
 	void handleEvents() {
 		while (true) {
-			const int deltaTimeMs = 50;
+			const int deltaTimeMs = 10;
 			std::this_thread::sleep_for(std::chrono::milliseconds(deltaTimeMs));
 			if (!movementMode) {
 				continue;
