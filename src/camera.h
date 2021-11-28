@@ -24,8 +24,8 @@ public:
 		projection(3, 2) = -1;
 		projection(3, 3) = 0;
 
-		projection(2, 2) = (5 + 0.1) / (0.1 - 5);
-		projection(2, 3) = (2 * 5 * 0.1) / (0.1 - 5);
+		projection(2, 2) = (100 + 0.1) / (0.1 - 100);
+		projection(2, 3) = (2 * 100 * 0.1) / (0.1 - 100);
 
 		ViewProjection = projection;
 		if (uniformLocation != -1) {

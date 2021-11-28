@@ -3,6 +3,7 @@
 uniform vec4[2] light;
 in vec3 vertexPosition;
 in vec3 normal;
+in vec4 vertexColor;
 
 out vec3 color;
 
@@ -12,6 +13,6 @@ void main() {
 	
 	vec3 vertexToLight = normalize(lightPosition - vertexPosition);
 	float lightIntensity = dot(vertexToLight, normalize(normal));
-	color = vec3(1,0,0) * (0.2 + clamp(lightIntensity, 0., 1.));
+	color = vertexColor.xyz * (0.2 + clamp(lightIntensity, 0., 1.));
 	// color = vec3(1,0,0);
 }

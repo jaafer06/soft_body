@@ -13,7 +13,10 @@
 #include "callbacks.h"
 #include "scene.h"
 #include "light.h"
+#include "utils/eigen.h"
+#include "utils/shapes.h"
 
+using namespace utils::EigenUtils;
 template<typename Type, unsigned int n>
 using Attribute = utils::Attribute<Type, n>;
 
@@ -41,6 +44,7 @@ int main(void) {
     glfwSwapInterval(1);
 
     Camera camera(width, height, 1);
+    camera.move({0, 2, 0, 0}, 0, -100);
     CallBacks callBacks(window, camera);
     Light light({ 0, 5, 10, 1 }, {1, 1, 1, 1});
 
@@ -58,9 +62,10 @@ int main(void) {
     glUseProgram(programID);
 
     utils::Mesh mesh;
-    mesh.loadObj("../meshes/bunny.obj");
+    mesh.loadObj("../meshes/cube.obj");
     mesh.preprocessNormalize();
-    mesh.preprocessTranslate({0, 0, -4});
+    mesh.preprocessSetColor({ 1, 1, 1, 1 });
+    mesh.preprocessScale(10, 0.1, 10);
     unsigned int ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -78,7 +83,7 @@ int main(void) {
 
     while (!glfwWindowShouldClose(window)) {
         //mesh.translate({ 0, 0, -0.01 });
-        mesh.rotate(0, 0, 0.01);
+        //mesh.rotate(0, 0, 0.01);
 
         glUniformMatrix4fv(glGetUniformLocation(programID, "Model"), 1, GL_FALSE, mesh.getTransform().data());
         camera.updateUniform();

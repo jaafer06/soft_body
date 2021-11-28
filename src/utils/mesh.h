@@ -8,21 +8,28 @@
 #include "utils/objloader.hpp"
 
 namespace utils {
-	struct Triangle {
-		unsigned int index0;
-		unsigned int index1;
-		unsigned int index2;
-	};
-	
-	struct Vertex {
-		Eigen::Vector4f position;
-		Eigen::Vector3f normal;
-		Eigen::Vector4f color;
-	};
 
 	class Mesh {
 	public:
+		struct Triangle {
+			unsigned int index0;
+			unsigned int index1;
+			unsigned int index2;
+		};
+
+		struct Vertex {
+			Eigen::Vector4f position;
+			Eigen::Vector3f normal;
+			Eigen::Vector4f color;
+		};
+
 		Mesh() {
+			transform = Eigen::Matrix4f::Identity();
+		}
+
+		Mesh(std::vector<Vertex> vertices, std::vector<Triangle> triangles)
+			: vertices(vertices), triangles(triangles) 
+		{
 			transform = Eigen::Matrix4f::Identity();
 		}
 
@@ -65,6 +72,12 @@ namespace utils {
 			}
 		}
 
+		void preprocessSetColor(const Eigen::Vector4f&& color) {
+			for (auto& vertex : getVertices()) {
+				vertex.color = color;
+			}
+		}
+
 		Eigen::Vector3f getMeshCenter() {
 			Eigen::Vector3f center{ 0, 0, 0 };
 			for (Vertex& point : getVertices()) {
@@ -73,9 +86,26 @@ namespace utils {
 			return center / getVertices().size();
 		}
 
-		void preprocessTranslate(Eigen::Vector3f t) {
+		void preprocessTranslate(const Eigen::Vector3f&& t) {
 			for (Vertex& point : getVertices()) {
 				point.position.head(3) += t;
+			}
+		}
+
+		void preprocessTransform(const Eigen::Matrix4f&& matrix) {
+			for (Vertex& point : getVertices()) {
+				point.position = matrix * point.position;
+			}
+		}
+
+		void preprocessScale(float xScale, float yScale, float zScale) {
+			auto center = getMeshCenter().head(3);
+			Eigen::Matrix3f M = Eigen::Matrix3f::Identity();
+			M(0, 0) = xScale;
+			M(1, 1) = yScale;
+			M(2, 2) = zScale;
+			for (Vertex& point : getVertices()) {
+				point.position.head(3) = M * point.position.head(3) - M * center + center;
 			}
 		}
 
