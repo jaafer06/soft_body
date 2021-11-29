@@ -33,7 +33,7 @@ namespace utils {
 			transform = Eigen::Matrix4f::Identity();
 		}
 
-		bool loadObj(std::string&& file_name) {
+		bool loadObj(const std::string& file_name) {
 			std::vector<float> result;
 			objl::Loader loader;
 			if (!loader.LoadFile(file_name)) {

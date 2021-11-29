@@ -14,7 +14,8 @@
 #include "scene.h"
 #include "light.h"
 #include "utils/eigen.h"
-#include "utils/shapes.h"
+#include "scene.h"
+#include <string>
 
 using namespace utils::EigenUtils;
 template<typename Type, unsigned int n>
@@ -61,23 +62,25 @@ int main(void) {
     GLuint programID = utils::linkShaders(fragmentShader, vertexShader);
     glUseProgram(programID);
 
-    utils::Mesh mesh;
-    mesh.loadObj("../meshes/cube.obj");
-    mesh.preprocessNormalize();
-    mesh.preprocessSetColor({ 1, 1, 1, 1 });
-    mesh.preprocessScale(10, 0.1, 10);
-    unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.getTriangles().size() * 3 * sizeof(unsigned int), mesh.getTriangles().data(), GL_STATIC_DRAW);
-
-    utils::VertexArray<Attribute<float,4>,Attribute<float,4>,Attribute<float, 4>>
-        vertexArray(mesh.getVertices().data(), mesh.getVertices().size());
-    
     camera.setUniformLocation(glGetUniformLocation(programID, "ViewProjection"));
     light.setUniformLocation(glGetUniformLocation(programID, "light"));
 
-    imguiWrapper.display(mesh.getTransform(), "model transform");
+    Scene scene(glGetUniformLocation(programID, "Model"));
+    Mesh bunnyMesh;
+    bunnyMesh.loadObj("../meshes/beast.obj");
+    Mesh cubeMesh;
+    cubeMesh.loadObj("../meshes/cube.obj");
+    cubeMesh.preprocessNormalize();
+    cubeMesh.preprocessSetColor({ 1, 1, 1, 1 });
+    cubeMesh.preprocessScale(10, 0.1, 10);
+    bunnyMesh.preprocessNormalize();
+    bunnyMesh.preprocessTranslate({ 0, 2, 0 });
+
+    scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(bunnyMesh);
+    scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(cubeMesh);
+
+
+    imguiWrapper.display(scene[0].getTransform(), "bunny model transform");
     imguiWrapper.display(camera.getViewProjectionMatrix(), "ViewProjection matrix");
     imguiWrapper.displaySlider(light.getPosition(), "light position");
 
@@ -85,12 +88,9 @@ int main(void) {
         //mesh.translate({ 0, 0, -0.01 });
         //mesh.rotate(0, 0, 0.01);
 
-        glUniformMatrix4fv(glGetUniformLocation(programID, "Model"), 1, GL_FALSE, mesh.getTransform().data());
         camera.updateUniform();
         light.update();
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-        glDrawElements(GL_TRIANGLES, mesh.getTriangles().size() * 3, GL_UNSIGNED_INT, nullptr);
+        scene.render();
         imguiWrapper.render();
 
         glfwSwapBuffers(window);

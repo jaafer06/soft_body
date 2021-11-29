@@ -1,29 +1,5 @@
-namespace op_renderer {
-    enum ATTRIBUTE_TYPE {
-        POSITION, NORMAL, TEXTURE
-    };
-
-    struct TYPES {
-        struct NORMAL {};
-        struct POSITION {};
-        struct TEXTURE {};
-    };
-
-    template<typename... Args>
-    struct T {
-
-    };
-
-    template<typename... Args>
-    struct T<ATTRIBUTE_TYPE, Args...> {
-
-    };
-
-    void test() {
-        //T<ATTRIBUTE_TYPE::POSITION>;
-    }
-
-};
+#pragma once
+#include "glad/glad.h"
 
 
 namespace utils {
