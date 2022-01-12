@@ -1,21 +1,22 @@
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <Eigen/Dense>
 #include <iostream>
+#include <chrono>
 #include "utils/shader.h"
 #include "utils/utils.h"
 #include "utils/mesh.h"
 #include "utils/vertexArray.h"
 #include "utils/imgui.h"
 #include "camera.h"
-#include <functional>
-#include <type_traits>
 #include "callbacks.h"
 #include "scene.h"
 #include "light.h"
 #include "utils/eigen.h"
 #include "scene.h"
 #include <string>
+#include "physics.h"
 
 using namespace utils::EigenUtils;
 template<typename Type, unsigned int n>
@@ -66,28 +67,36 @@ int main(void) {
     light.setUniformLocation(glGetUniformLocation(programID, "light"));
 
     Scene scene(glGetUniformLocation(programID, "Model"));
-    Mesh bunnyMesh;
-    bunnyMesh.loadObj("../meshes/sphere.obj");
-    Mesh cubeMesh;
-    cubeMesh.loadObj("../meshes/cube.obj");
-    cubeMesh.preprocessNormalize();
-    cubeMesh.preprocessSetColor({ 1, 1, 1, 1 });
-    cubeMesh.preprocessScale(10, 0.1, 10);
-    bunnyMesh.preprocessNormalize();
-    bunnyMesh.preprocessTranslate({ 0, 2, 0 });
+    Mesh* sphereMesh = new Mesh();
+    sphereMesh->loadObj("../meshes/sphere.obj");
+    Mesh* floorMesh = new Mesh();
+    floorMesh->loadObj("../meshes/cube.obj");
+    floorMesh->preprocessNormalize();
+    floorMesh->preprocessSetColor({ 1, 1, 1, 1 });
+    floorMesh->preprocessScale(10, 0.1, 10);
+    sphereMesh->preprocessNormalize();
+    sphereMesh->preprocessTranslate({ 0, 1, 2 });
+    sphereMesh->preprocessScale(0.3);
 
-    scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(bunnyMesh);
-    scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(cubeMesh);
-    scene.addMeshFromObj<Attribute<float, 4>, Attribute<float, 4>, Attribute<float, 4>>("../meshes/cube.obj");
+    auto& sphere = scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(sphereMesh, "sphere");
+    auto& floor = scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(floorMesh);
 
-    imguiWrapper.display(scene[1].getTransform(), "bunny model transform");
-    imguiWrapper.display(camera.getViewMatrix(), "view matrix");
+    imguiWrapper.display(sphere.transform, sphere.name);
+    //imguiWrapper.display(scene[0].mesh.getTransform(), scene.getMeshName(sphere));
+    // imguiWrapper.display(camera.getViewMatrix(), "view matrix");
     imguiWrapper.displaySlider(light.getPosition(), "light position");
 
-    while (!glfwWindowShouldClose(window)) {
-        //mesh.translate({ 0, 0, -0.01 });
-        //mesh.rotate(0, 0, 0.01);
+    Physics<RenderableMesh> physics;
+    auto& particule = physics.addParticule(sphere, 5);
 
+    particule.applyForce({0, 5000, -2000});
+    while (!glfwWindowShouldClose(window)) {
+        particule.applyForce({ 0, -particule.mass * 10, 0 });
+        physics.tick(0.01);
+
+        //mesh.translate({ 0, 0, -0.01 });
+        //sphere.mesh.rotate(0, 0, 0.01);
+        //sphere.translate({ 0, 0, -0.01 });
         camera.updateUniform();
         light.update();
         scene.render();

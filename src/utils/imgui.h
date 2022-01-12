@@ -25,7 +25,7 @@ namespace utils {
 		}
 
 		template<typename Type, int n, int m>
-		void display(Eigen::Matrix<Type, n, m>& matrix, const std::string&& displayName) {
+		void display(Eigen::Matrix<Type, n, m>& matrix, const std::string& displayName) {
 			const auto callback = [&](std::string& displayName) {
 				ImGui::SetNextItemOpen(true, ImGuiTreeNodeFlags_DefaultOpen);
 				if (ImGui::TreeNode(displayName.c_str())) {

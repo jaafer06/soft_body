@@ -23,15 +23,10 @@ namespace utils {
 			Eigen::Vector4f color;
 		};
 
-		Mesh() {
-			transform = Eigen::Matrix4f::Identity();
-		}
+		Mesh() {}
 
 		Mesh(std::vector<Vertex> vertices, std::vector<Triangle> triangles)
-			: vertices(vertices), triangles(triangles) 
-		{
-			transform = Eigen::Matrix4f::Identity();
-		}
+			: vertices(vertices), triangles(triangles) {}
 
 		bool loadObj(const std::string& file_name) {
 			std::vector<float> result;
@@ -51,18 +46,6 @@ namespace utils {
 				triangles.push_back(t);
 			}
 			return true;
-		}
-
-		void translate(const Eigen::Vector3f& t) {
-			transform.block<3, 1>(0, 3) += transform.block<3, 3>(0, 0) * t;
-		}
-
-		void rotate(float xAxis, float yAxis, float zAxis) {
-			const auto r = Eigen::AngleAxisf(xAxis, Eigen::Vector3f{ 1, 0, 0 }) 
-							* Eigen::AngleAxisf(yAxis, Eigen::Vector3f{ 0, 1, 0 })
-							* Eigen::AngleAxisf(zAxis, Eigen::Vector3f{ 0, 0, 1 });
-			transform.block<3, 1>(0, 3) = r * transform.block<3, 1>(0, 3);
-			transform.block<3, 3>(0, 0) = r * transform.block<3, 3>(0, 0);
 		}
 
 		void preprocessNormalize() {
@@ -108,6 +91,9 @@ namespace utils {
 				point.position.head(3) = M * point.position.head(3) - M * center + center;
 			}
 		}
+		void preprocessScale(float scale) {
+			preprocessScale(scale, scale, scale);
+		}
 
 		std::pair<Eigen::Vector3f, float> getMeshCenterAndRadius() {
 			Eigen::Vector3f mesh_center = getMeshCenter();
@@ -126,12 +112,7 @@ namespace utils {
 			return vertices;
 		}
 
-		Eigen::Matrix4f& getTransform() {
-			return transform;
-		}
-
 	private:
-		Eigen::Matrix4f transform;
 		std::vector<Vertex> vertices;
 		std::vector<Triangle> triangles;
 	};
