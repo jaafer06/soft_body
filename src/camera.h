@@ -68,6 +68,10 @@ public:
 		return right;
 	}
 
+	Eigen::Matrix<float, 4, 4>& getViewMatrix() {
+		return view;
+	}
+
 private:
 	void update() {
 		ViewProjection = projection * view;

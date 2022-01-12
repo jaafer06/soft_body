@@ -45,10 +45,10 @@ int main(void) {
     glfwSwapInterval(1);
 
     Camera camera(width, height, 1);
-    camera.move({0, 2, 0, 0}, 0, -100);
+    camera.move({0, 1, 4, 0}, 0, 0);
     CallBacks callBacks(window, camera);
     Light light({ 0, 5, 10, 1 }, {1, 1, 1, 1});
-
+    
     gladLoadGL();
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
@@ -67,7 +67,7 @@ int main(void) {
 
     Scene scene(glGetUniformLocation(programID, "Model"));
     Mesh bunnyMesh;
-    bunnyMesh.loadObj("../meshes/beast.obj");
+    bunnyMesh.loadObj("../meshes/sphere.obj");
     Mesh cubeMesh;
     cubeMesh.loadObj("../meshes/cube.obj");
     cubeMesh.preprocessNormalize();
@@ -78,10 +78,10 @@ int main(void) {
 
     scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(bunnyMesh);
     scene.addMesh<Attribute<float,4>,Attribute<float,4>,Attribute<float,4>>(cubeMesh);
+    scene.addMeshFromObj<Attribute<float, 4>, Attribute<float, 4>, Attribute<float, 4>>("../meshes/cube.obj");
 
-
-    imguiWrapper.display(scene[0].getTransform(), "bunny model transform");
-    imguiWrapper.display(camera.getViewProjectionMatrix(), "ViewProjection matrix");
+    imguiWrapper.display(scene[1].getTransform(), "bunny model transform");
+    imguiWrapper.display(camera.getViewMatrix(), "view matrix");
     imguiWrapper.displaySlider(light.getPosition(), "light position");
 
     while (!glfwWindowShouldClose(window)) {
